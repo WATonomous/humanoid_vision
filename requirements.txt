@@ -1,0 +1,2 @@
+# Minimal development requirements
+pytest>=7.0
