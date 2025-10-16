@@ -2,20 +2,21 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
-from torch.utils.data import TensorDataset 
 
 class TrainingPipeline ():
-    def __init__(self,model,data,batch_size=32,lr =0.01,epochs=100, optimizer = optim.Adam, criterion = nn.BCELoss, device = None):
+    def __init__(self,model,data,batch_size=32,lr =0.01,epochs=100, optimizer = optim.Adam, criterion = nn.BCELoss, device = None, train_percent = 0.8):
         '''
         Initialize the Training Pipeline
-        :param model: PASS IN MODEL CLASS
-        :param data: pass into data in tensor form
-        :param batch_size: batch size for training
-        :param lr: learning rate
-        :param epochs: Number of training epochs
-        :param device: The device model and data will be passed into(ie cpu or cuda)
-        :param optimizer: PASS IN THE OPTIMIZER CLASS
-        :param criterion: PASS IN LOSS FUNCTION CLASS
+        Args:
+            :param model: PASS IN MODEL CLASS.
+            :param data: pass into data in tensor form.
+            :param batch_size: batch size for training.
+            :param lr: learning rate.
+            :param epochs: Number of training epochs.
+            :param device: The device model and data will be passed into(ie cpu or cuda).
+            :param optimizer: PASS IN THE OPTIMIZER CLASS.
+            :param criterion: PASS IN LOSS FUNCTION CLASS.
+            :param train_percent: used to split into training and validation 
         '''
         self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = model.to(self.device)
@@ -24,8 +25,8 @@ class TrainingPipeline ():
         self.optimizer = optimizer(self.model.parameters(),lr = lr)
         self.epochs = epochs
 
-        #train test split(0.8:0.2)
-        train_size = int(0.8* len(data))
+        #train test split(default 8:2)
+        train_size = int(train_percent* len(data))
         val_size = len(data) - train_size
         train_data , val_data = random_split(data,[train_size,val_size])
 
@@ -37,7 +38,8 @@ class TrainingPipeline ():
     def train_one_epoch(self):
         '''
         Runs one training loop through the model using training data
-        :return: average loss for the batch
+        Returns:
+            float: Average loss for the batch
         '''
         self.model.train()
         total_loss = 0
@@ -58,7 +60,8 @@ class TrainingPipeline ():
     def validate(self):
         '''
         Evaluates the current model using testing data
-        :return: average loss for the batch
+        Returns:
+            float: average loss for the batch
         '''
         self.model.eval()
         total_loss = 0
@@ -75,7 +78,7 @@ class TrainingPipeline ():
 
     def training(self):
         '''
-        Loop where all the training actually happens
+        Loop where all the training actually happens, prints out training and validation loss
         '''
         for epoch in range(self.epochs):
             train_loss = self.train_one_epoch()
@@ -85,24 +88,10 @@ class TrainingPipeline ():
 
     def save(self,path):
         '''
-        Saves the model to a given path
-        :param path: path where model is saved
+        Saves the model to the given path
+        Args:
+            :param path: path where model is saved
+        
         '''
         torch.save(self.model.state_dict(),path)
 
-#test code
-
-testModel = nn.Sequential(
-    nn.Linear(3,1),
-    nn.Sigmoid()
-)
-
-#size of batchsize then 10
-X = torch.randn(100,3)
-print(X)
-y = torch.randint(0, 2, (100, 1)).float()
-
-testData = TensorDataset(X,y)
-
-pipeline = TrainingPipeline(model = testModel,batch_size = 10,data = testData, device = "cpu")
-pipeline.training()
