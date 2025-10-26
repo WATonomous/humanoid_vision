@@ -45,7 +45,7 @@ class Camera:
             raise RuntimeError("Failed to read frame from camera")
         return frame
     
-    def getFrames(self, duration:int) -> list[np.ndarray]:
+    def getFrames(self, duration: int) -> list[np.ndarray]:
         """
             getFrames(int duration): returns a list of frames for however long the specified duration is
         """
