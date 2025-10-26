@@ -32,7 +32,7 @@ class Camera:
         self.cam = cv2.VideoCapture(idx)
         self.overlays: list[tuple[tuple[int, int], tuple[int, int]]] = []
 
-    def set_brightness(self, val:float):
+    def set_brightness(self, val: float):
         self.cam.set(cv2.CAP_PROP_BRIGHTNESS, val)
 
 
