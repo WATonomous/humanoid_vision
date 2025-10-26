@@ -20,13 +20,13 @@ config.enable_stream(rs.stream.color, 640,480,rs.format.bgr8,30)
 profile = pipeline.start(config)
 
 #--------------------define measurement point------------------------
-#if our model already returns a midpoint then we wont need this
+#finds midpoint of given the coordinates of bounding box so that depth can be calculated
 def getMidpoint(point1,point2):
     #this function takes object and finds midpoint, so that one point can be inputed to find distance
     return (point1[0]+point2[0]) * 0.5 , (point1[1]+point2[1]) * 0.5 #x,y cooridinates
 
 
-#import model that will be used to process coloured frame to detect objects
+#import some model to detect objects
 model = YOLO("my_model.pt")
 
 #--------------------processing--------------------------------------
@@ -37,7 +37,6 @@ try:
         frames = pipeline.wait_for_frames()
         color_frame = frames.get_color_frame()
         depth_frame = frames.get_depth_frame()
-
 
         #put colour frame into model to get the bounding boxes or whatever marking location of the objects
 
@@ -53,14 +52,15 @@ try:
             dist = depth_frame.get_distance(x,y)
             depth_array.append(dist)
         
-        print(dist)
-        cv2.imshow("Stream",frames)
+
+        print(dist)#printing out the depth
+
+        cv2.imshow("Stream",frames) #replace with annotated frame after
         key = cv2.waitKey(10)
 
         if key == 27:
                 cv2.destroyAllWindows()
                 break
 
-#stop streaming
 finally:
     pipeline.stop()
