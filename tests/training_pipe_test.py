@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset
 
-testModel = nn.Sequential(
+model = nn.Sequential(
     nn.Linear(3,1),
     nn.Sigmoid()
 )
@@ -13,7 +13,7 @@ X = torch.randn(100,3)
 print(X)
 y = torch.randint(0, 2, (100, 1)).float()
 
-testData = TensorDataset(X,y)
+data = TensorDataset(X,y)
 
-pipeline = TrainingPipeline(model = testModel,batch_size = 10,data = testData, device = "cpu")
+pipeline = TrainingPipeline(model=model, batch_size=10, data=data, device="cpu")
 pipeline.training()
