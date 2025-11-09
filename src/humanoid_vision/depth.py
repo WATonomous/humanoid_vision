@@ -28,6 +28,7 @@ def getMidpoint(point1,point2):
 
 #import some model to detect objects
 model = YOLO("my_model.pt")
+#net = cv2.dnnreadNetFromCaffe("Resources/MobileNetSSD_deploy.prototxt","Resources/MobileNetSSD_deploy.caffemodel")
 
 #--------------------processing--------------------------------------
 try:
@@ -58,9 +59,10 @@ try:
         cv2.imshow("Stream",frames) #replace with annotated frame after
         key = cv2.waitKey(10)
 
+        #leaves when escape is pressed
         if key == 27:
-                cv2.destroyAllWindows()
-                break
+            cv2.destroyAllWindows()
+            break
 
 finally:
     pipeline.stop()
