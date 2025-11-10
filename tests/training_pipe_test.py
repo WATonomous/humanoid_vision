@@ -1,4 +1,4 @@
-from src.humanoid_vision.training_pipeline import TrainingPipeline
+from humanoid_vision.training_pipeline import TrainingPipeline
 #from training_pipeline import TrainingPipeline
 import torch
 import torch.nn as nn
