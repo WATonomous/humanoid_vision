@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import cv2
 
 class InferencePipeline():
     def __init__(self, model, data=None, batch_size=32, criterion=nn.BCELoss, device=None, model_path=None):
@@ -101,3 +102,19 @@ class InferencePipeline():
                 total_loss += loss.item()
         
         return total_loss / len(self.data_loader)
+    def camera_inference(self, camera_stream):
+        '''
+        Generator that yields frames from a camera and logs skipped frames
+        Args:
+            :param camera: camera stream generator
+         Yields:
+            torch.Tensor: The model's output for each processed frame.
+        '''
+        self.model.eval()
+        with torch.no_grad():
+          for frame in camera_stream:
+            # permute frame to match what model requires
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_tensor = torch.from_numpy(frame_rgb).permute(2, 0, 1).float().unsqueeze(0).to(self.device)
+            out_frame = self.model(frame_tensor)
+            yield out_frame.cpu()
