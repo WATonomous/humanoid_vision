@@ -8,10 +8,10 @@ model = nn.Sequential(
     nn.Sigmoid()
 )
 
-    # Create test data
-    X = torch.randn(100,3)
-    y = torch.randint(0, 2, (100, 1)).float()
-    test_data = TensorDataset(X,y)
+# Create test data
+X = torch.randn(100,3)
+y = torch.randint(0, 2, (100, 1)).float()
+test_data = TensorDataset(X,y)
 
 data = TensorDataset(X,y)
 
