@@ -1,5 +1,5 @@
-from src.humanoid_vision.inference_pipeline import InferencePipeline
-from src.humanoid_vision.training_pipeline import TrainingPipeline
+from humanoid_vision.inference_pipeline import InferencePipeline
+from humanoid_vision.training_pipeline import TrainingPipeline
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset
