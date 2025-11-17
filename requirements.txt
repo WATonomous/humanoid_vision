@@ -1,5 +1,6 @@
 # For Testing
 pytest>=7.0
+opencv-python
 
 # For Training & Inference
 torch>=1.13.0
