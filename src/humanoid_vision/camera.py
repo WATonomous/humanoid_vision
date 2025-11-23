@@ -3,7 +3,6 @@
 This file intentionally contains no implementations. Add Camera classes and helpers here.
 """
 
-
 from typing import Any
 import cv2
 import numpy as np
@@ -21,6 +20,7 @@ for i in range(MAX_IDX):
 
 print(available)
 
+
 class Camera:
     def __init__(self, idx: int):
         """
@@ -35,19 +35,18 @@ class Camera:
     def set_brightness(self, val: float):
         self.cam.set(cv2.CAP_PROP_BRIGHTNESS, val)
 
-
     def getFrame(self) -> np.ndarray:
         """
-            getFrame(): returns the current frame of the camera whenever the function is called
+        getFrame(): returns the current frame of the camera whenever the function is called
         """
         ret, frame = self.cam.read()
         if not ret:
             raise RuntimeError("Failed to read frame from camera")
         return frame
-    
+
     def getFrames(self, duration: int) -> list[np.ndarray]:
         """
-            getFrames(int duration): returns a list of frames for however long the specified duration is
+        getFrames(int duration): returns a list of frames for however long the specified duration is
         """
         start = time.time()
         frames = []
@@ -86,18 +85,17 @@ class Camera:
                 break
 
             # draw overlays
-            for (top_left, bottom_right) in getattr(self, "overlays", []):
+            for top_left, bottom_right in getattr(self, "overlays", []):
                 cv2.rectangle(frame, top_left, bottom_right, (0, 255, 0), 2)
 
             cv2.imshow("Camera Stream", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
         self.cam.release()
         cv2.destroyAllWindows()
 
     def addOverlay(self, boundingBoxList: list[tuple[tuple[int, int], tuple[int, int]]]):
-
         """
         addOverlay(boundingBoxList): utility function to add bounding boxes (using top left and bottom right coordinates), on a camera, that are displayed when we call viewStream(). (its not used when any of the getFrames() are called
         """
