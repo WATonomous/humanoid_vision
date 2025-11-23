@@ -1,6 +1,0 @@
-# For Testing
-pytest>=7.0
-
-# For Training & Inference
-torch>=1.13.0
-numpy>=1.21.0

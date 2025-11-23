@@ -14,3 +14,6 @@ dist/
 
 # Pytest cache
 .pytest_cache/
+
+# Model files
+.pth
