@@ -16,4 +16,4 @@ dist/
 .pytest_cache/
 
 # Model files
-.pth
+*.pth

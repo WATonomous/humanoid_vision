@@ -9,17 +9,19 @@ class InferencePipeline():
         '''
         Initialize the Inference Pipeline
         Args:
-            :param model: PASS IN MODEL CLASS.
+            :param model: instantiated model (nn.Module) moved to device
             :param data: pass into data in tensor form (optional for inference).
             :param batch_size: batch size for inference.
             :param device: The device model and data will be passed into (ie cpu or cuda).
-            :param criterion: PASS IN LOSS FUNCTION CLASS (optional, for evaluation).
+            :param criterion: Loss class or instance (optional, for evaluation).
             :param model_path: Path to load trained model weights from (optional).
         '''
         self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = model.to(self.device)
         self.batch_size = batch_size
-        self.criterion = criterion()
+
+        # support either a loss class (callable) or an already-instantiated criterion
+        self.criterion = criterion() if callable(criterion) else criterion
         
         # Load model weights if path is provided
         if model_path:
@@ -104,6 +106,32 @@ class InferencePipeline():
         
         return total_loss / len(self.data_loader)
     
+    def camera_inference(self, camera_stream):
+        '''
+        Generator that yields model outputs for frames from a camera stream generator.
+
+        Args:
+            camera_stream: an iterator/generator that yields BGR frames (HWC uint8 numpy arrays)
+
+        Yields:
+            torch.Tensor: model output (moved to CPU) for each processed frame.
+        '''
+        self.model.eval()
+        skipped = 0
+        with torch.no_grad():
+            for frame in camera_stream:
+                if frame is None:
+                    skipped += 1
+                    continue
+                # convert BGR -> RGB
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                frame_tensor = torch.from_numpy(frame_rgb).float().permute(2, 0, 1) / 255.0
+                frame_tensor = frame_tensor.unsqueeze(0).to(self.device)
+                out_frame = self.model(frame_tensor)
+                yield out_frame.cpu()
+        if skipped:
+            print(f"Skipped {skipped} empty frames from camera stream.")
+    
     def predict_video(self, video_path, transform=None, max_frames=None):
         """
         Run inference on each frame of a video stream.
@@ -118,45 +146,32 @@ class InferencePipeline():
             list: A list of model predictions (one tensor per frame).
         """
 
-        # Open video source
-        cap = cv2.VideoCapture(video_path) # initialize VideoCapture object to read video
-        if not cap.isOpened(): # video did not open successfully
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
             raise RuntimeError(f"Failed to open video source: {video_path}")
 
-        predictions = [] # return array of prediction of all frames
-        frame_count = 0 # number of total frames
+        predictions = []
+        frame_count = 0
 
-        # go through each frame
         while True:
             ret, frame = cap.read()
-            if not ret: # end of video (no frame returned)
-                break 
+            if not ret:
+                break
 
-            # Convert BGR (video frame) -> RGB (image for model)
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # numpy.ndarray of rgb with shape HWC
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-            # Preprocess frame
             if transform is not None:
                 inp = transform(frame_rgb)
             else:
-                # Default: basic conversion to tensor form HWC numpy array to CHW tensor
-                # convert numbers to float then divide by 255 for range [0,1] normalization
-                # faster than torch.tensor, can use since we don't need to modify it after
-                inp = torch.from_numpy(frame_rgb).float().permute(2,0,1) / 255.0 
+                inp = torch.from_numpy(frame_rgb).float().permute(2,0,1) / 255.0
 
-            # Add batch dimension for NCHW format (assumed format for model)
-            inp = inp.unsqueeze(0) # add batch dimension 
+            inp = inp.unsqueeze(0).to(self.device)
+            pred = self.predict(inp)
+            predictions.append(pred.cpu())
 
-            pred = self.predict(inp) # Run inference
-
-            predictions.append(pred.cpu()) # add prediction to array
-
-            # Exit early if max_frames specified
-           
-            frame_count += 1 # add to frame count
-            if max_frames is not None and frame_count >= max_frames: # goes over max frames
+            frame_count += 1
+            if max_frames is not None and frame_count >= max_frames:
                 break
 
-        cap.release() # release video capture object
-
-        return predictions # return predictions array
+        cap.release()
+        return predictions
