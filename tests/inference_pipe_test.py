@@ -5,10 +5,7 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset
 
 # Create model for testing
-model = nn.Sequential(
-    nn.Linear(3, 1),
-    nn.Sigmoid()
-)
+model = nn.Sequential(nn.Linear(3, 1), nn.Sigmoid())
 
 # Create test data
 X = torch.randn(100, 3)
@@ -27,14 +24,13 @@ training_pipeline.save(model_path)
 print(f"\nModel saved to {model_path}")
 
 # Create a new model for inference
-inference_model = nn.Sequential(
-    nn.Linear(3, 1),
-    nn.Sigmoid()
-)
+inference_model = nn.Sequential(nn.Linear(3, 1), nn.Sigmoid())
 
 # Test inference pipeline with saved model
 print("\n--- Testing Inference Pipeline ---")
-inference_pipeline = InferencePipeline(model=inference_model, data=data, batch_size=10, device="cpu", model_path=model_path)
+inference_pipeline = InferencePipeline(
+    model=inference_model, data=data, batch_size=10, device="cpu", model_path=model_path
+)
 
 # Test evaluate method
 print("\nEvaluating model on test data...")

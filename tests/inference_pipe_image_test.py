@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset
 
+
 # Simple CNN for basic object detection (binary classification: object present or not)
 class SimpleObjectDetector(nn.Module):
     def __init__(self):
@@ -22,7 +23,7 @@ class SimpleObjectDetector(nn.Module):
         self.fc2 = nn.Linear(128, 1)
         self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
-    
+
     def forward(self, x):
         # x shape: (batch_size, 1, 28, 28)
         x = self.relu(self.conv1(x))
@@ -31,6 +32,7 @@ class SimpleObjectDetector(nn.Module):
         x = self.relu(self.fc1(x))
         x = self.sigmoid(self.fc2(x))
         return x
+
 
 print("=== Basic Object Detection Test ===\n")
 
@@ -63,7 +65,7 @@ training_pipeline = TrainingPipeline(
     batch_size=16,
     lr=0.001,
     epochs=20,
-    device="cpu"
+    device="cpu",
 )
 training_pipeline.training()
 
@@ -81,7 +83,7 @@ inference_pipeline = InferencePipeline(
     data=image_data,
     batch_size=16,
     device="cpu",
-    model_path=model_path
+    model_path=model_path,
 )
 
 # Evaluate the model
