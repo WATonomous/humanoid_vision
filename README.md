@@ -3,20 +3,23 @@ Vision Prototyping For The Humanoid Project
 
 ## Setup Instructions
 
-1. Create and activate a Python virtual environment:
-
+### 1. Create and activate a Python virtual environment:
 ```
 python -m venv .venv
-# Windows PowerShell
+```
+Windows PowerShell Activation
+```
 .\.venv\Scripts\Activate.ps1
 ```
+---
 
-2. Install requirements:
+### 2. Install the humanoid package:
 ```
-pip install -r requirements.txt
+pip install -e '.[dev]'
 ```
+---
 
-3. Run tests:
+### 3. Run tests:
 ```
 pytest -q
 ```
