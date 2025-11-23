@@ -1,5 +1,4 @@
 from humanoid_vision.training_pipeline import TrainingPipeline
-#from training_pipeline import TrainingPipeline
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset
@@ -9,9 +8,10 @@ model = nn.Sequential(
     nn.Sigmoid()
 )
 
-X = torch.randn(100,3)
-print(X)
-y = torch.randint(0, 2, (100, 1)).float()
+    # Create test data
+    X = torch.randn(100,3)
+    y = torch.randint(0, 2, (100, 1)).float()
+    test_data = TensorDataset(X,y)
 
 data = TensorDataset(X,y)
 
