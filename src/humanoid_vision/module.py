@@ -22,10 +22,10 @@ class Module:
 			
 		return data
 		
-	def summary():
+	def summary(self):
 		# print a summary of the module, things like name, layers, description, etc
-		print()
-		
+		print(f"Module: {self.name}")
+		print(f"Description: {self.description}")
 		
 class Layer:
 	# general layer metadata
@@ -35,7 +35,7 @@ class Layer:
 	
 	def process(dataIn):
 		# returns a processed version of the data based on what the layer does
-		
+		raise NotImplementedError("Subclass must implement process()")
 	
 # example layers
 class ObjectDetectionLayer(Layer):
@@ -44,13 +44,34 @@ class ObjectDetectionLayer(Layer):
 		# takes an image or a frame and returns bounding boxes
 		
 		# calls inference pipeline with the model code
-		
+		raise NotImplementedError("Subclass must implement process()")
+	
 class OrientationDetectionLayer(Layer):
 	def process(dataIn):
 		# takes in an image and a bounding box and returns the objects orientation
 		
 class YOLO(ObjectDetectionLayer):
 	# more specific type of object detection based on the YOLO algorithm
+	def __init__ (self, model_path = 'yolov8n.pt', confidence = 0.25):
+		super.__init__("YOLO", "YOLO object detection")
+		self.model = YOLO(model_path)
+		self.confidence = confidence
+	def process(self, dataIn):
+		results = self.model(dataIn,conf=self.confidence, verbose = False)
+
+		detections = []
+
+		for result in results:
+			boxes = result.boxes
+			for box in boxes:
+				detection = {'bbox':box.xyxy[0],
+				 'confidence':box.conf[0],
+				 'class_id':box.cls[0],
+				 'class_name':result.names[int(box.cls[0])]
+				 }
+			detections.append(detection)
+
+		return detections
 	
 # etc etc
 
