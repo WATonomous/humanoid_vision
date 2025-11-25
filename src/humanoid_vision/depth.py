@@ -19,44 +19,72 @@ config.enable_stream(rs.stream.color, 640,480,rs.format.bgr8,30)
 
 profile = pipeline.start(config)
 
+#alignment object
+align = rs.align(rs.stream.color)
+
 #--------------------define measurement point------------------------
 #finds midpoint of given the coordinates of bounding box so that depth can be calculated
 def getMidpoint(point1,point2):
     #this function takes object and finds midpoint, so that one point can be inputed to find distance
-    return (point1[0]+point2[0]) * 0.5 , (point1[1]+point2[1]) * 0.5 #x,y cooridinates
+    return int((point1[0]+point2[0]) * 0.5) , int((point1[1]+point2[1]) * 0.5) #x,y cooridinates
 
 
 #import some model to detect objects
-model = YOLO("my_model.pt")
+model = YOLO("yolov8n.pt")
 #net = cv2.dnnreadNetFromCaffe("Resources/MobileNetSSD_deploy.prototxt","Resources/MobileNetSSD_deploy.caffemodel")
 
+depth_array=[]
 #--------------------processing--------------------------------------
 try:
     #loop of processing camera frames
     while True:
         #receiving frames
         frames = pipeline.wait_for_frames()
-        color_frame = frames.get_color_frame()
-        depth_frame = frames.get_depth_frame()
+
+        #align depth to color
+        aligned_frames = align.process(frames)
+        color_frame = aligned_frames.get_color_frame()
+        depth_frame = aligned_frames.get_depth_frame()
+
+        #convert frames to np arrays before putting into model
+        color_frame = np.asanyarray(color_frame.get_data())
+        depth_image = np.asanyarray(depth_frame.get_data())
 
         #put colour frame into model to get the bounding boxes or whatever marking location of the objects
 
         results = model(color_frame,stream=True)
 
-        depth_array = []
-
+        object_depths = []
         for r in results:
-            points = r.boxes.xyxy
-            x,y = getMidpoint(points[:2],points[2:])
+            boxes = r.boxes
+            for i,box in enumerate(boxes):
+                cls = int(box.cls[0])
+                conf = box.conf[0]
+                cls_name = model.names[cls]
+                if conf>0.5:
+                    x1,y1,x2,y2 = box.xyxy[0].numpy()
+                    x,y = getMidpoint((x1,y1),(x2,y2))
+                    #get distance from point
+                    dist = depth_frame.get_distance(x,y)
 
-            #get distance from point
-            dist = depth_frame.get_distance(x,y)
-            depth_array.append(dist)
-        
+                    object_depths.append({'id':i,'position':(x,y),'distance':dist})
+                    cv2.rectangle(color_frame,
+                                  (int(x1),int(y1)),
+                                  (int(x2),int(y2)),
+                                  (0,255,0),
+                                  2)
+                    label = f"{cls_name}: {dist:.2f}"
+                    cv2.putText(color_frame,
+                                label,
+                                (int(x1),int(y1)-10),
+                                cv2.FONT_HERSHEY_COMPLEX,
+                                0.5,
+                                (0,255,0),
+                                2)
 
-        print(dist)#printing out the depth
+        print(object_depths)#printing out information
 
-        cv2.imshow("Stream",frames) #replace with annotated frame after
+        cv2.imshow("Depth detection",color_frame) #replace with annotated frame after
         key = cv2.waitKey(10)
 
         #leaves when escape is pressed
